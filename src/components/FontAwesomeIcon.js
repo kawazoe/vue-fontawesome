@@ -1,34 +1,10 @@
 import { parse as faParse, icon as faIcon } from '@fortawesome/fontawesome-svg-core'
-import { defineComponent, computed, watch } from 'vue'
+import { defineComponent, computed, watch, inject, ref } from 'vue'
 import convert from '../converter'
 import log from '../logger'
-import { objectWithKey, classList } from '../utils'
+import { normalizeIconArgs, objectWithKey, classList, iconLookupEquals } from '../utils'
 
-function normalizeIconArgs (icon) {
-  if (icon && typeof icon === 'object' && icon.prefix && icon.iconName && icon.icon) {
-    return icon
-  }
-
-  if (faParse.icon) {
-    return faParse.icon(icon)
-  }
-
-  if (icon === null) {
-    return null
-  }
-
-  if (typeof icon === 'object' && icon.prefix && icon.iconName) {
-    return icon
-  }
-
-  if (Array.isArray(icon) && icon.length === 2) {
-    return { prefix: icon[0], iconName: icon[1] }
-  }
-
-  if (typeof icon === 'string') {
-    return { prefix: 'fas', iconName: icon }
-  }
-}
+import { contextInjectionKey } from './FontAwesomeContextKeys';
 
 export default defineComponent({
   name: 'FontAwesomeIcon',
@@ -90,10 +66,6 @@ export default defineComponent({
       type: [String, Object],
       default: null
     },
-    symbol: {
-      type: [Boolean, String],
-      default: false
-    },
     title: {
       type: String,
       default: null
@@ -151,7 +123,7 @@ export default defineComponent({
       ...classes.value,
       ...transform.value,
       ...mask.value,
-      symbol: props.symbol,
+      symbol: false,
       title: props.title
     }))
 
@@ -161,7 +133,28 @@ export default defineComponent({
       }
     }, { immediate: true })
 
-    const vnode = computed(() => renderedIcon.value ? convert(renderedIcon.value.abstract[0], {}, attrs) : null)
+    const context = inject(contextInjectionKey, ref([]))
+    const cached = computed(() => context.value.find(i => iconLookupEquals(i, icon.value)))
+
+    const vnode = computed(() => {
+      if (!renderedIcon.value) {
+        return null;
+      }
+
+      let svg = renderedIcon.value.abstract[0];
+
+      // TODO: Ideally, fontawesome-svg-core should have a way of rendering specific nodes only.
+      if (cached.value) {
+        // When referencing symbols, the content needs to be replaced by a link to the rendered symbol
+        const symbolId = `#${icon.value.prefix}-fa-${icon.value.iconName}`
+        svg = {
+          ...svg,
+          children: [{ tag: 'use', attributes: { 'xlink:href': symbolId } }]
+        }
+      }
+
+      return convert(svg, {}, attrs);
+    })
     return () => vnode.value
   }
 })

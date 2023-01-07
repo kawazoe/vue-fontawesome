@@ -9,6 +9,56 @@
 
 > Font Awesome Vue 3 component using SVG with JS
 
+## Changes in this fork
+This version of vue-fontawesome improves support for SVG symbols (also known as sprites). SVG symbols are a way
+to pre-render SVGs that are often reused on the page, ensuring that their paths are only rasterized once, a slow
+process, but composited everywhere they are needed, a very fast one.
+
+The official version provides limited support for symbols, by offering a prop on `FontAwesomeIcon` that can be
+set to define an icon as a symbol. However, it provides no ways of using these symbols afterward, instead assuming
+that you would know how to do this manually, as well as assuming that you can guess what id they will have, and
+what classes you should be using on them; both things that are normally handled by this same component, when
+not using the symbol feature.
+
+Instead, this fork tries to automate this process by making it completely transparent for the developer. The
+symbol prop is removed, and instead replaced by a new component: `FontAwesomeContext`. This component
+can be configured with a set of icons that should be used as symbols. It will then render those icons as symbols
+in a single location for you. Then, you use `FontAwesomeIcon` as you always did. It will be smart enough to know
+if an icon is already cached, and will reuse it automatically if possible.
+
+This has multiple advantages. First, it decouples the choice of icon from the choice of rasterizing the icon early.
+Effectively, this means that any component made with `FontAwesomeIcon` will just work, no matter if the icons
+where cached or not, leaving the decision of using caching as a performance improvement to the user of those
+components. Seconds, it ensures that icons symbols will have the same look as normal icons and support the same
+features, without manual intervention.
+
+### Install
+```
+npm i "git+https://github.com/kawazoe/vue-fontawesome.git#3.x"
+```
+
+### Usage
+```html
+<template>
+<app>
+  <fa-context :symbols="symbols">
+    <fa-icon icon="fas fa-recycle"></fa-icon> //< Uses a symbol
+    <fa-icon icon="fas fa-trash"></fa-icon>   //< Rendered in place
+  </fa-context>
+
+  <fa-icon icon="fas fa-recycle"></fa-icon> //< Rendered in place
+</app>
+</template>
+
+<script setup>
+import { faRecycle } from '@fortawesome/free-solid-svg-icon';
+
+const symbols = [faRecycle];
+</script>
+```
+
+## Original README
+
 ---
 
 <!-- toc -->

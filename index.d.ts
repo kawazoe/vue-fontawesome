@@ -1,6 +1,10 @@
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { DefineComponent } from 'vue'
 
+interface FontAwesomeContextProps {
+  symbols: Array<object | Array<string> | string | IconDefinition>
+}
+
 interface FontAwesomeIconProps {
   border?: boolean
   fixedWidth?: boolean
@@ -15,7 +19,6 @@ interface FontAwesomeIconProps {
   size?: '2xs' | 'xs' | 'sm' | 'lg' | 'xl' | '2xl' | '1x' | '2x' | '3x' | '4x' | '5x' | '6x' | '7x' | '8x' | '9x' | '10x'
   spin?: boolean
   transform?: object | string
-  symbol?: boolean | string
   title?: string
   inverse?: boolean
   bounce?: boolean
@@ -38,6 +41,7 @@ interface FontAwesomeLayersTextProps {
   position?: 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right'
 }
 
+declare const FontAwesomeContext: DefineComponent<FontAwesomeContextProps>
 declare const FontAwesomeIcon: DefineComponent<FontAwesomeIconProps>
 declare const FontAwesomeLayers: DefineComponent<FontAwesomeLayersProps>
 declare const FontAwesomeLayersText: DefineComponent<FontAwesomeLayersTextProps>

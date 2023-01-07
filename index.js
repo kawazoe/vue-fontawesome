@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@fortawesome/fontawesome-svg-core'), require('vue')) :
-  typeof define === 'function' && define.amd ? define(['exports', '@fortawesome/fontawesome-svg-core', 'vue'], factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global["vue-fontawesome"] = {}, global.FontAwesome, global.vue));
-})(this, (function (exports, fontawesomeSvgCore, vue) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('vue'), require('@fortawesome/fontawesome-svg-core')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'vue', '@fortawesome/fontawesome-svg-core'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global["vue-fontawesome"] = {}, global.vue, global.FontAwesome));
+})(this, (function (exports, vue, fontawesomeSvgCore) { 'use strict';
 
   function ownKeys(object, enumerableOnly) {
     var keys = Object.keys(object);
@@ -35,6 +35,7 @@
     }, _typeof(obj);
   }
   function _defineProperty(obj, key, value) {
+    key = _toPropertyKey(key);
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -98,6 +99,74 @@
   }
   function _nonIterableSpread() {
     throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  function _toPrimitive(input, hint) {
+    if (typeof input !== "object" || input === null) return input;
+    var prim = input[Symbol.toPrimitive];
+    if (prim !== undefined) {
+      var res = prim.call(input, hint || "default");
+      if (typeof res !== "object") return res;
+      throw new TypeError("@@toPrimitive must return a primitive value.");
+    }
+    return (hint === "string" ? String : Number)(input);
+  }
+  function _toPropertyKey(arg) {
+    var key = _toPrimitive(arg, "string");
+    return typeof key === "symbol" ? key : String(key);
+  }
+
+  var contextInjectionKey = Symbol('FontAwesomeContextKey');
+
+  function normalizeIconArgs(icon) {
+    if (icon && _typeof(icon) === 'object' && icon.prefix && icon.iconName && icon.icon) {
+      return icon;
+    }
+    if (fontawesomeSvgCore.parse.icon) {
+      return fontawesomeSvgCore.parse.icon(icon);
+    }
+    if (icon === null) {
+      return null;
+    }
+    if (_typeof(icon) === 'object' && icon.prefix && icon.iconName) {
+      return icon;
+    }
+    if (Array.isArray(icon) && icon.length === 2) {
+      return {
+        prefix: icon[0],
+        iconName: icon[1]
+      };
+    }
+    if (typeof icon === 'string') {
+      return {
+        prefix: 'fas',
+        iconName: icon
+      };
+    }
+  }
+  function iconLookupEquals(left, right) {
+    return left === right || left == null && right == null || left.prefix === right.prefix && left.iconName === right.iconName;
+  }
+  function objectWithKey(key, value) {
+    return Array.isArray(value) && value.length > 0 || !Array.isArray(value) && value ? _defineProperty({}, key, value) : {};
+  }
+  function classList(props) {
+    var _classes;
+    var classes = (_classes = {
+      'fa-spin': props.spin,
+      'fa-pulse': props.pulse,
+      'fa-fw': props.fixedWidth,
+      'fa-border': props.border,
+      'fa-li': props.listItem,
+      'fa-inverse': props.inverse,
+      'fa-flip': props.flip === true,
+      'fa-flip-horizontal': props.flip === 'horizontal' || props.flip === 'both',
+      'fa-flip-vertical': props.flip === 'vertical' || props.flip === 'both'
+    }, _defineProperty(_classes, "fa-".concat(props.size), props.size !== null), _defineProperty(_classes, "fa-rotate-".concat(props.rotation), props.rotation !== null), _defineProperty(_classes, "fa-pull-".concat(props.pull), props.pull !== null), _defineProperty(_classes, 'fa-swap-opacity', props.swapOpacity), _defineProperty(_classes, 'fa-bounce', props.bounce), _defineProperty(_classes, 'fa-shake', props.shake), _defineProperty(_classes, 'fa-beat', props.beat), _defineProperty(_classes, 'fa-fade', props.fade), _defineProperty(_classes, 'fa-beat-fade', props.beatFade), _defineProperty(_classes, 'fa-flash', props.flash), _defineProperty(_classes, 'fa-spin-pulse', props.spinPulse), _defineProperty(_classes, 'fa-spin-reverse', props.spinReverse), _classes);
+    return Object.keys(classes).map(function (key) {
+      return classes[key] ? key : null;
+    }).filter(function (key) {
+      return key;
+    });
   }
 
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -238,7 +307,7 @@
 
   var humps = humps$1.exports;
 
-  var _excluded = ["class", "style"];
+  var _excluded$1 = ["class", "style"];
 
   /**
    * Converts a CSS style into a plain Javascript object.
@@ -315,12 +384,96 @@
     attrs.class;
       var _attrs$style = attrs.style,
       aStyle = _attrs$style === void 0 ? {} : _attrs$style,
-      otherAttrs = _objectWithoutProperties(attrs, _excluded);
+      otherAttrs = _objectWithoutProperties(attrs, _excluded$1);
     return vue.h(abstractElement.tag, _objectSpread2(_objectSpread2(_objectSpread2({}, props), {}, {
       class: mixins.class,
       style: _objectSpread2(_objectSpread2({}, mixins.style), aStyle)
     }, mixins.attrs), otherAttrs), children);
   }
+
+  var _excluded = ["class", "aria-hidden", "focusable"];
+  var FontAwesomeSymbols = vue.defineComponent({
+    name: 'FontAwesomeSymbols',
+    props: {
+      icons: {
+        type: Array,
+        required: true
+      }
+    },
+    setup: function setup(props) {
+      vue.watchEffect(function () {
+        return fontawesomeSvgCore.library.add.apply(fontawesomeSvgCore.library, _toConsumableArray(props.icons));
+      });
+      var renderedIcons = vue.computed(function () {
+        return props.icons.map(function (icon) {
+          return fontawesomeSvgCore.icon(icon, {
+            symbol: true
+          });
+        });
+      });
+
+      // TODO: Ideally, fontawesome-svg-core should have a way of rendering specific nodes only.
+      var symbols = vue.computed(function () {
+        return renderedIcons.value.map(function (icon) {
+          var symbol = icon.abstract[0].children[0];
+          // When rendering symbols:
+          // - classes are meaningless
+          // - aria-hidden and focusable can be shared through the parent
+          var _symbol$attributes = symbol.attributes;
+            _symbol$attributes.class;
+            _symbol$attributes['aria-hidden'];
+            _symbol$attributes.focusable;
+            var attrs = _objectWithoutProperties(_symbol$attributes, _excluded);
+          return _objectSpread2(_objectSpread2({}, symbol), {}, {
+            attributes: attrs
+          });
+        });
+      });
+      var vnode = vue.computed(function () {
+        return vue.h('svg', {
+          style: {
+            display: 'none'
+          },
+          'aria-hidden': 'true',
+          focusable: 'false'
+        }, symbols.value.map(function (s) {
+          return convert(s);
+        }));
+      });
+      return function () {
+        return vnode.value;
+      };
+    }
+  });
+  var FontAwesomeContext = vue.defineComponent({
+    name: 'FontAwesomeContext',
+    props: {
+      symbols: {
+        type: Array,
+        required: true
+      }
+    },
+    setup: function setup(props, _ref) {
+      var slots = _ref.slots;
+      var parentContext = vue.inject(contextInjectionKey, vue.ref([]));
+      var localContext = vue.computed(function () {
+        return props.symbols.map(normalizeIconArgs).filter(function (icon) {
+          return !!icon && !parentContext.value.find(function (parentIcon) {
+            return iconLookupEquals(icon, parentIcon);
+          });
+        });
+      });
+      var composedContext = vue.computed(function () {
+        return parentContext.value.concat(localContext.value);
+      });
+      vue.provide(contextInjectionKey, vue.readonly(composedContext));
+      return function () {
+        return [vue.h(FontAwesomeSymbols, {
+          icons: localContext.value
+        }), slots.default ? slots.default() : vue.createCommentVNode('FontAwesomeContext:unused')];
+      };
+    }
+  });
 
   var PRODUCTION = false;
   try {
@@ -333,55 +486,6 @@
     }
   }
 
-  function objectWithKey(key, value) {
-    return Array.isArray(value) && value.length > 0 || !Array.isArray(value) && value ? _defineProperty({}, key, value) : {};
-  }
-  function classList(props) {
-    var _classes;
-    var classes = (_classes = {
-      'fa-spin': props.spin,
-      'fa-pulse': props.pulse,
-      'fa-fw': props.fixedWidth,
-      'fa-border': props.border,
-      'fa-li': props.listItem,
-      'fa-inverse': props.inverse,
-      'fa-flip': props.flip === true,
-      'fa-flip-horizontal': props.flip === 'horizontal' || props.flip === 'both',
-      'fa-flip-vertical': props.flip === 'vertical' || props.flip === 'both'
-    }, _defineProperty(_classes, "fa-".concat(props.size), props.size !== null), _defineProperty(_classes, "fa-rotate-".concat(props.rotation), props.rotation !== null), _defineProperty(_classes, "fa-pull-".concat(props.pull), props.pull !== null), _defineProperty(_classes, 'fa-swap-opacity', props.swapOpacity), _defineProperty(_classes, 'fa-bounce', props.bounce), _defineProperty(_classes, 'fa-shake', props.shake), _defineProperty(_classes, 'fa-beat', props.beat), _defineProperty(_classes, 'fa-fade', props.fade), _defineProperty(_classes, 'fa-beat-fade', props.beatFade), _defineProperty(_classes, 'fa-flash', props.flash), _defineProperty(_classes, 'fa-spin-pulse', props.spinPulse), _defineProperty(_classes, 'fa-spin-reverse', props.spinReverse), _classes);
-    return Object.keys(classes).map(function (key) {
-      return classes[key] ? key : null;
-    }).filter(function (key) {
-      return key;
-    });
-  }
-
-  function normalizeIconArgs(icon) {
-    if (icon && _typeof(icon) === 'object' && icon.prefix && icon.iconName && icon.icon) {
-      return icon;
-    }
-    if (fontawesomeSvgCore.parse.icon) {
-      return fontawesomeSvgCore.parse.icon(icon);
-    }
-    if (icon === null) {
-      return null;
-    }
-    if (_typeof(icon) === 'object' && icon.prefix && icon.iconName) {
-      return icon;
-    }
-    if (Array.isArray(icon) && icon.length === 2) {
-      return {
-        prefix: icon[0],
-        iconName: icon[1]
-      };
-    }
-    if (typeof icon === 'string') {
-      return {
-        prefix: 'fas',
-        iconName: icon
-      };
-    }
-  }
   var FontAwesomeIcon = vue.defineComponent({
     name: 'FontAwesomeIcon',
     props: {
@@ -449,10 +553,6 @@
         type: [String, Object],
         default: null
       },
-      symbol: {
-        type: [Boolean, String],
-        default: false
-      },
       title: {
         type: String,
         default: null
@@ -510,7 +610,7 @@
       });
       var renderedIcon = vue.computed(function () {
         return fontawesomeSvgCore.icon(icon.value, _objectSpread2(_objectSpread2(_objectSpread2(_objectSpread2({}, classes.value), transform.value), mask.value), {}, {
-          symbol: props.symbol,
+          symbol: false,
           title: props.title
         }));
       });
@@ -521,8 +621,32 @@
       }, {
         immediate: true
       });
+      var context = vue.inject(contextInjectionKey, vue.ref([]));
+      var cached = vue.computed(function () {
+        return context.value.find(function (i) {
+          return iconLookupEquals(i, icon.value);
+        });
+      });
       var vnode = vue.computed(function () {
-        return renderedIcon.value ? convert(renderedIcon.value.abstract[0], {}, attrs) : null;
+        if (!renderedIcon.value) {
+          return null;
+        }
+        var svg = renderedIcon.value.abstract[0];
+
+        // TODO: Ideally, fontawesome-svg-core should have a way of rendering specific nodes only.
+        if (cached.value) {
+          // When referencing symbols, the content needs to be replaced by a link to the rendered symbol
+          var symbolId = "#".concat(icon.value.prefix, "-fa-").concat(icon.value.iconName);
+          svg = _objectSpread2(_objectSpread2({}, svg), {}, {
+            children: [{
+              tag: 'use',
+              attributes: {
+                'xlink:href': symbolId
+              }
+            }]
+          });
+        }
+        return convert(svg, {}, attrs);
       });
       return function () {
         return vnode.value;
@@ -601,6 +725,7 @@
     }
   });
 
+  exports.FontAwesomeContext = FontAwesomeContext;
   exports.FontAwesomeIcon = FontAwesomeIcon;
   exports.FontAwesomeLayers = FontAwesomeLayers;
   exports.FontAwesomeLayersText = FontAwesomeLayersText;
